@@ -1,4 +1,4 @@
-package org.product.catalogue.search;
+package com.sapiant;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
