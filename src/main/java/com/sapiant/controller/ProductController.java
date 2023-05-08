@@ -1,6 +1,6 @@
 package com.sapiant.controller;
 
-import com.sapiant.entity.ProductEntity;
+import com.sapiant.entity.Product;
 import com.sapiant.service.ProductService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +21,9 @@ public class ProductController {
 	ProductService service;
 	
 	@PostMapping("product/save")
-	public void saveProduct(@RequestBody ProductEntity productEntity) {
+	public void saveProduct(@RequestBody Product product) {
 		log.info("Inside /product/save ");
-		service.saveProduct(productEntity);
+		service.saveProduct(product);
 	}
 	
 	@DeleteMapping("product/delete/{id}")
@@ -33,14 +33,14 @@ public class ProductController {
 	}
 	
 	@GetMapping("product/search")
-	public Page<ProductEntity> getProductByBrand(@RequestParam("page") int page,
-												 @RequestParam("size") int size,
-												 @RequestParam("sortBy") String sortBy,
-												 @RequestParam("sortType") String sortType,
-												 @RequestParam("") Map<String, String> filters,
-												 Pageable pageable) {
+	public Page<Product> getProductByBrand(@RequestParam("page") int page,
+										   @RequestParam("size") int size,
+										   @RequestParam("sortBy") String sortBy,
+										   @RequestParam("sortType") String sortType,
+										   @RequestParam("") Map<String, String> filters,
+										   Pageable pageable) {
 		log.info("Inside /product/delete/{id}");
-		Page<ProductEntity> result = service.findByFilter(page,size,sortBy,sortType, filters);
+		Page<Product> result = service.findByFilter(page,size,sortBy,sortType, filters);
 		return result;
 	}
 
@@ -61,7 +61,7 @@ public class ProductController {
 	}
 
 	@GetMapping("product/getBySku/{sku}")
-	public ResponseEntity<List<ProductEntity>> getProductBySku(@PathVariable String sku) {
+	public ResponseEntity<List<Product>> getProductBySku(@PathVariable String sku) {
 		log.info("Inside /product/getBySku/{sku}");
 		return new ResponseEntity<>(service.getProductBySku(sku), HttpStatus.OK);
 	}

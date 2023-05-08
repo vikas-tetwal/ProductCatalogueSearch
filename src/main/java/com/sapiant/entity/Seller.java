@@ -3,9 +3,10 @@ package com.sapiant.entity;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Entity
-public class SellerEntity {
+public class Seller {
 	
 	@Id
 	@GeneratedValue

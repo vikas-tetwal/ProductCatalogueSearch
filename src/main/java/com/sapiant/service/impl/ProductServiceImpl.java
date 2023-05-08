@@ -1,9 +1,8 @@
 package com.sapiant.service.impl;
 
 
-import com.sapiant.entity.ProductEntity;
-import com.sapiant.entity.SellerEntity;
-import com.sapiant.repository.ProductPaginatedRepository;
+import com.sapiant.entity.Product;
+import com.sapiant.entity.Seller;
 import com.sapiant.repository.ProductRepository;
 import com.sapiant.repository.SellerRepository;
 import com.sapiant.service.ProductService;
@@ -23,35 +22,34 @@ import java.util.Map;
 
 @Service("ProductService")
 public class ProductServiceImpl implements ProductService {
+	public ProductServiceImpl(EntityManager entityManager) {
+		this.entityManager = entityManager;
+		this.criteriaBuilder = entityManager.getCriteriaBuilder();
+	}
 
 	@Autowired
 	ProductRepository productRepo;
-
-	@Autowired
-	ProductPaginatedRepository paginatedRepository;
 	
 	@Autowired
 	SellerRepository sellerRepo;
 	
-	public void saveProduct(ProductEntity productEntity) {
-		productRepo.save(productEntity);
+	public void saveProduct(Product product) {
+		productRepo.save(product);
 	}
 	
 	public void deleteProduct(int id) {
 		productRepo.deleteById(id);
 	}
 
-	@Autowired
-	EntityManager entityManager;
-	@Autowired
-	CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+	final EntityManager entityManager;
+	final CriteriaBuilder criteriaBuilder;
 
-	public Page<ProductEntity> findByFilter(int page, int size , String sortBy, String sortType, Map<String, String> filters){
-		List<ProductEntity> result;
+	public Page<Product> findByFilter(int page, int size , String sortBy, String sortType, Map<String, String> filters){
+		List<Product> result;
 
-		CriteriaQuery<ProductEntity> criteriaQuery = criteriaBuilder.createQuery(ProductEntity.class);
+		CriteriaQuery<Product> criteriaQuery = criteriaBuilder.createQuery(Product.class);
 
-		Root<ProductEntity> orderRoot = criteriaQuery.from(ProductEntity.class);
+		Root<Product> orderRoot = criteriaQuery.from(Product.class);
 		criteriaQuery.select(orderRoot);
 			Predicate predicate = getPredicate(criteriaQuery, orderRoot, filters, false);
 		criteriaQuery.where(predicate);
@@ -61,7 +59,7 @@ public class ProductServiceImpl implements ProductService {
 			criteriaQuery.orderBy(criteriaBuilder.desc(orderRoot.get(sortBy)));
 		}
 
-		TypedQuery<ProductEntity> typedQuery = entityManager.createQuery(criteriaQuery);
+		TypedQuery<Product> typedQuery = entityManager.createQuery(criteriaQuery);
 		typedQuery.setFirstResult(page * size);
 		typedQuery.setMaxResults(size);
 		Pageable pageable = getPageable(page, size, sortBy, sortType);
@@ -71,7 +69,7 @@ public class ProductServiceImpl implements ProductService {
 
 	private long getOrderCount(Predicate predicate) {
 		CriteriaQuery<Long> countQuery = criteriaBuilder.createQuery(Long.class);
-		Root<ProductEntity> countRoot = countQuery.from(ProductEntity.class);
+		Root<Product> countRoot = countQuery.from(Product.class);
 		countQuery.select(criteriaBuilder.count(countRoot)).where(predicate);
 		return entityManager.createQuery(countQuery).getSingleResult();
 	}
@@ -81,60 +79,60 @@ public class ProductServiceImpl implements ProductService {
 		return PageRequest.of(page, size, sort);
 	}
 
-	private Predicate getPredicate(CriteriaQuery<ProductEntity> criteriaQuery, Root<ProductEntity> orderRoot, Map<String, String> filters, Boolean includeDeleted) {
+	private Predicate getPredicate(CriteriaQuery<Product> criteriaQuery, Root<Product> orderRoot, Map<String, String> filters, Boolean includeDeleted) {
 		List<Predicate> predicateList = new ArrayList<>();
 		if(!includeDeleted){
-			predicateList.add(criteriaBuilder.equal(orderRoot.get(ProductEntity.DELETED), false));
+			predicateList.add(criteriaBuilder.equal(orderRoot.get(Product.DELETED), false));
 		}
-		if(filters.containsKey(ProductEntity.BRAND)){
-			predicateList.add(criteriaBuilder.equal(orderRoot.get(ProductEntity.BRAND), filters.get(ProductEntity.BRAND)));
+		if(filters.containsKey(Product.BRAND)){
+			predicateList.add(criteriaBuilder.equal(orderRoot.get(Product.BRAND), filters.get(Product.BRAND)));
 		}
-		if(filters.containsKey(ProductEntity.SIZE)){
-			predicateList.add(criteriaBuilder.equal(orderRoot.get(ProductEntity.SIZE), filters.get(ProductEntity.SIZE)));
+		if(filters.containsKey(Product.SIZE)){
+			predicateList.add(criteriaBuilder.equal(orderRoot.get(Product.SIZE), filters.get(Product.SIZE)));
 		}
-		if(filters.containsKey(ProductEntity.COLOR)){
-			predicateList.add(criteriaBuilder.equal(orderRoot.get(ProductEntity.COLOR), filters.get(ProductEntity.COLOR)));
+		if(filters.containsKey(Product.COLOR)){
+			predicateList.add(criteriaBuilder.equal(orderRoot.get(Product.COLOR), filters.get(Product.COLOR)));
 		}
 
 		return criteriaBuilder.and(predicateList.stream().toArray(Predicate[] :: new));
 	}
 
-	public List<ProductEntity> getProductByColor(String color){
-		List<ProductEntity> result;
+	public List<Product> getProductByColor(String color){
+		List<Product> result;
 		result = productRepo.findByColor(color);
 		return result;
 	}
 	
-	public List<ProductEntity> getProductBySize(int size){
-		List<ProductEntity> result;
+	public List<Product> getProductBySize(int size){
+		List<Product> result;
 		result = productRepo.findBySize(size);
 		return result;
 	}
 	
-	public List<ProductEntity> getProductBySku(String sku){
-		List<ProductEntity> result;
+	public List<Product> getProductBySku(String sku){
+		List<Product> result;
 		result = productRepo.findBySku(sku);
 		return result;
 	}
 	
-	public List<ProductEntity> getProductByPrice(Double price){
-		List<ProductEntity> result;
+	public List<Product> getProductByPrice(Double price){
+		List<Product> result;
 		result = productRepo.findByPrice(price);
 		return result;
 	}
 	
 	public long getProductQuantity(String sellerName, int productId) {
-		List<SellerEntity> sellerEntity = sellerRepo.findBySellerNameAndProductId(sellerName, productId);
+		List<Seller> seller = sellerRepo.findBySellerNameAndProductId(sellerName, productId);
 		long count = 0;
-		count = sellerEntity.stream().map(s->s.getQuantity()).reduce(0,Integer::sum);
+		count = seller.stream().map(s->s.getQuantity()).reduce(0,Integer::sum);
 		return count;
 	}
 	
 	public long getInventory(int productId) {
 		long count = 0;
 		
-		List<SellerEntity> sellerEntity = sellerRepo.findByProductId(productId);
-		count = sellerEntity.stream().map(s->s.getQuantity()).reduce(0, Integer::sum);
+		List<Seller> seller = sellerRepo.findByProductId(productId);
+		count = seller.stream().map(s->s.getQuantity()).reduce(0, Integer::sum);
 		return count;
 	}
 }
