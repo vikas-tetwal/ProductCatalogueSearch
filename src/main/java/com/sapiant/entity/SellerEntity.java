@@ -1,11 +1,11 @@
-package com.sapiant.model;
+package com.sapiant.entity;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
 @Entity
-public class Seller {
+public class SellerEntity {
 	
 	@Id
 	@GeneratedValue

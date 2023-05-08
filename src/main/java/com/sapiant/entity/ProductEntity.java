@@ -1,11 +1,16 @@
-package com.sapiant.model;
+package com.sapiant.entity;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
 @Entity
-public class Product {
+public class ProductEntity {
+
+	public static final String DELETED = "isDeleted";
+	public static final String BRAND = "brand";
+	public static final String COLOR = "color";
+	public static final String SIZE = "size";
 	@Id
 	@GeneratedValue
 	private int productId;
@@ -15,6 +20,8 @@ public class Product {
 	private String brand;
 	private int size;
 	private String sku;
+
+	private Boolean isDeleted;
 	
 	public int getProductId() {
 		return productId;
