@@ -1,12 +1,16 @@
 package com.sapiant.service.impl;
 
 
+import com.sapiant.model.PaginatedProductResponse;
 import com.sapiant.model.Product;
 import com.sapiant.model.Seller;
+import com.sapiant.repository.ProductPaginatedRepository;
 import com.sapiant.repository.ProductRepository;
 import com.sapiant.repository.SellerRepository;
 import com.sapiant.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +20,9 @@ public class ProductServiceImpl implements ProductService {
 
 	@Autowired
 	ProductRepository productRepo;
+
+	@Autowired
+	ProductPaginatedRepository paginatedRepository;
 	
 	@Autowired
 	SellerRepository sellerRepo;
@@ -27,10 +34,16 @@ public class ProductServiceImpl implements ProductService {
 	public void deleteProduct(int id) {
 		productRepo.deleteById(id);
 	}
-	public List<Product> getProductByBrand(String brand){
+
+
+	public PaginatedProductResponse findByFilter(String query, Pageable pageable){
 		List<Product> result;
-		result = productRepo.findByBrand(brand);
-		return result;
+		Page<Product> books = paginatedRepository.findAllByProductNameContains(query, pageable);
+		return PaginatedProductResponse.builder()
+				.numberOfItems(books.getTotalElements())
+				.numberOfPages(books.getTotalPages())
+				.productsList(books.getContent())
+				.build();
 	}
 	
 	public List<Product> getProductByColor(String color){

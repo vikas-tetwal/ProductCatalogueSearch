@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.security.InvalidParameterException;
+
 @ControllerAdvice
 public class CatalogueExceptionHandler extends ResponseEntityExceptionHandler {
 
@@ -23,7 +25,13 @@ public class CatalogueExceptionHandler extends ResponseEntityExceptionHandler {
        String error = "Unexpected error!";
        return buildResponseEntity(new ServiceError(HttpStatus.INTERNAL_SERVER_ERROR, error, ex));
    }
-   
+
+    @ExceptionHandler(InvalidParameterException.class)
+    public ResponseEntity<Object> handleInvalidParameterException(Exception ex) {
+        String error = "Invalid Request!";
+        return buildResponseEntity(new ServiceError(HttpStatus.BAD_REQUEST, error, ex));
+    }
+
    @ExceptionHandler(ProductNotFoundException.class)
    public ResponseEntity<Object> handleGenericException(ProductNotFoundException ex) {
        String error = "Product not found!";
