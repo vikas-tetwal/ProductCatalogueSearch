@@ -3,6 +3,7 @@ package com.sapiant.service.impl;
 
 import com.sapiant.entity.Product;
 import com.sapiant.entity.Seller;
+import com.sapiant.enums.GroupByEnum;
 import com.sapiant.repository.ProductRepository;
 import com.sapiant.repository.SellerRepository;
 import com.sapiant.service.ProductService;
@@ -11,7 +12,7 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
+import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -29,14 +30,14 @@ public class ProductServiceImpl implements ProductService {
 
 	@Autowired
 	ProductRepository productRepo;
-	
+
 	@Autowired
 	SellerRepository sellerRepo;
-	
+
 	public void saveProduct(Product product) {
 		productRepo.save(product);
 	}
-	
+
 	public void deleteProduct(int id) {
 		productRepo.deleteById(id);
 	}
@@ -44,27 +45,17 @@ public class ProductServiceImpl implements ProductService {
 	final EntityManager entityManager;
 	final CriteriaBuilder criteriaBuilder;
 
-	public Page<Product> findByFilter(int page, int size , String sortBy, String sortType, Map<String, String> filters){
-		List<Product> result;
+	public List<Product> findByFilter(int page, int size , String sortBy, String value, String groupBy){
+		String stringQuery = "SELECT * FROM product where ? = ?";
+		Query query = entityManager.createNativeQuery(stringQuery, Product.class);
 
-		CriteriaQuery<Product> criteriaQuery = criteriaBuilder.createQuery(Product.class);
-
-		Root<Product> orderRoot = criteriaQuery.from(Product.class);
-		criteriaQuery.select(orderRoot);
-			Predicate predicate = getPredicate(criteriaQuery, orderRoot, filters, false);
-		criteriaQuery.where(predicate);
-		if(Sort.Direction.ASC.name().equals(sortType)){
-			criteriaQuery.orderBy(criteriaBuilder.asc(orderRoot.get(sortBy)));
-		}else {
-			criteriaQuery.orderBy(criteriaBuilder.desc(orderRoot.get(sortBy)));
-		}
-
-		TypedQuery<Product> typedQuery = entityManager.createQuery(criteriaQuery);
-		typedQuery.setFirstResult(page * size);
-		typedQuery.setMaxResults(size);
-		Pageable pageable = getPageable(page, size, sortBy, sortType);
-		long orderCount = getOrderCount(predicate);
-		return new PageImpl<>(typedQuery.getResultList(), pageable, orderCount);
+		GroupByEnum filterEnum = GroupByEnum.valueOf(groupBy.toUpperCase());
+		// validate
+		query.setParameter(1,groupBy);
+		query.setParameter(2,value);
+		return query.setFirstResult(page)
+				.setMaxResults(size)
+				.getResultList();
 	}
 
 	private long getOrderCount(Predicate predicate) {
@@ -102,35 +93,35 @@ public class ProductServiceImpl implements ProductService {
 		result = productRepo.findByColor(color);
 		return result;
 	}
-	
+
 	public List<Product> getProductBySize(int size){
 		List<Product> result;
 		result = productRepo.findBySize(size);
 		return result;
 	}
-	
+
 	public List<Product> getProductBySku(String sku){
 		List<Product> result;
 		result = productRepo.findBySku(sku);
 		return result;
 	}
-	
+
 	public List<Product> getProductByPrice(Double price){
 		List<Product> result;
 		result = productRepo.findByPrice(price);
 		return result;
 	}
-	
+
 	public long getProductQuantity(String sellerName, int productId) {
 		List<Seller> seller = sellerRepo.findBySellerNameAndProductId(sellerName, productId);
 		long count = 0;
 		count = seller.stream().map(s->s.getQuantity()).reduce(0,Integer::sum);
 		return count;
 	}
-	
+
 	public long getInventory(int productId) {
 		long count = 0;
-		
+
 		List<Seller> seller = sellerRepo.findByProductId(productId);
 		count = seller.stream().map(s->s.getQuantity()).reduce(0, Integer::sum);
 		return count;

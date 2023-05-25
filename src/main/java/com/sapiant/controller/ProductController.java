@@ -33,14 +33,14 @@ public class ProductController {
 	}
 	
 	@GetMapping("product/search")
-	public Page<Product> getProductByBrand(@RequestParam("page") int page,
+	public List<Product> getProductByBrand(@RequestParam("page") int page,
 										   @RequestParam("size") int size,
 										   @RequestParam("sortBy") String sortBy,
 										   @RequestParam("sortType") String sortType,
-										   @RequestParam("") Map<String, String> filters,
-										   Pageable pageable) {
+										   @RequestParam("groupBy") String groupBy,
+										   @RequestParam("value") String value) {
 		log.info("Inside /product/delete/{id}");
-		Page<Product> result = service.findByFilter(page,size,sortBy,sortType, filters);
+		List<Product> result = service.findByFilter(page,size,sortBy,value, groupBy);
 		return result;
 	}
 
